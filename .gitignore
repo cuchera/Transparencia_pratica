@@ -1,0 +1,38 @@
+# Ambiente virtual
+venv/
+backend/venv/
+
+# Python
+__pycache__/
+*.pyc
+
+# Cache do projeto
+cache/
+backend/cache/
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/# Ambiente virtual
+venv/
+env/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Cache do projeto
+cache/
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
