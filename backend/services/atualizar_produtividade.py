@@ -1,50 +1,94 @@
 import json
 import os
 import requests
+from collections import defaultdict
 
-BASE_URL = "https://dadosabertos.camara.leg.br/api/v2"
 CACHE_PROD = "cache/produtividade.json"
-
 os.makedirs("cache", exist_ok=True)
 
 
-def get_proposicoes(id_deputado):
-    url = f"{BASE_URL}/proposicoes?idDeputado={id_deputado}"
-    total = 0
-
-    while url:
-        resp = requests.get(url)
-        data = resp.json()
-
-        total += len(data.get("dados", []))
-
-        url = next((l["href"] for l in data.get("links", []) if l["rel"] == "next"), None)
-
-    return total
+def baixar_json(url: str):
+    resp = requests.get(url, timeout=60)
+    resp.raise_for_status()
+    return resp.json()
 
 
-def get_presenca(id_deputado):
-    url = f"{BASE_URL}/deputados/{id_deputado}/presencas"
-
-    total = 0
-    presentes = 0
-
-    while url:
-        resp = requests.get(url)
-        data = resp.json()
-
-        for item in data.get("dados", []):
-            for dia in item.get("dias", []):
-                total += 1
-                if dia.get("presenca") == "Presente":
-                    presentes += 1
-
-        url = next((l["href"] for l in data.get("links", []) if l["rel"] == "next"), None)
-
-    return presentes / total if total > 0 else 0
+def normalizar_lista_json(data):
+    """
+    Alguns arquivos podem vir como lista direta,
+    outros como dict com chave 'dados'.
+    """
+    if isinstance(data, list):
+        return data
+    if isinstance(data, dict):
+        if "dados" in data and isinstance(data["dados"], list):
+            return data["dados"]
+    return []
 
 
-def atualizar_produtividade():
+def contar_proposicoes_por_deputado(ano: int) -> dict:
+    """
+    Lê o arquivo anual de autores de proposições e conta
+    quantas proposições cada deputado possui.
+    """
+    url = (
+        f"https://dadosabertos.camara.leg.br/arquivos/"
+        f"proposicoesAutores/json/proposicoesAutores-{ano}.json"
+    )
+
+    print(f"📥 Baixando proposições/autores de {ano}...")
+    data = baixar_json(url)
+    registros = normalizar_lista_json(data)
+
+    contagem = defaultdict(int)
+    proposicoes_vistas = set()
+
+    for item in registros:
+        id_deputado = item.get("idDeputadoAutor")
+        id_proposicao = item.get("idProposicao")
+
+        if not id_deputado or not id_proposicao:
+            continue
+
+        chave_unica = (str(id_deputado), str(id_proposicao))
+
+        # Evita contar a mesma proposição duas vezes para o mesmo deputado
+        if chave_unica in proposicoes_vistas:
+            continue
+
+        proposicoes_vistas.add(chave_unica)
+        contagem[str(id_deputado)] += 1
+
+    return dict(contagem)
+
+
+def contar_presencas_por_deputado(ano: int) -> dict:
+    """
+    Lê o arquivo anual de presença em eventos e conta
+    quantos registros de presença cada deputado possui.
+    """
+    url = (
+        f"https://dadosabertos.camara.leg.br/arquivos/"
+        f"eventosPresencaDeputados/json/eventosPresencaDeputados-{ano}.json"
+    )
+
+    print(f"📥 Baixando presenças de {ano}...")
+    data = baixar_json(url)
+    registros = normalizar_lista_json(data)
+
+    contagem = defaultdict(int)
+
+    for item in registros:
+        id_deputado = item.get("idDeputado")
+        if not id_deputado:
+            continue
+
+        contagem[str(id_deputado)] += 1
+
+    return dict(contagem)
+
+
+def atualizar_produtividade(ano: int = 2025):
     from services.camara_service import listar_deputados_cache
 
     deputados = listar_deputados_cache()
@@ -52,21 +96,32 @@ def atualizar_produtividade():
 
     print("🔄 Atualizando produtividade...")
 
+    proposicoes_por_dep = contar_proposicoes_por_deputado(ano)
+    presencas_por_dep = contar_presencas_por_deputado(ano)
+
     for d in deputados:
-        id_dep = d["id"]
+        id_dep = str(d["id"])
         nome = d["nome"]
 
-        print(f"📥 {nome}")
+        proposicoes = proposicoes_por_dep.get(id_dep, 0)
+        presenca = presencas_por_dep.get(id_dep, 0)
 
-        proposicoes = get_proposicoes(id_dep)
-        presenca = get_presenca(id_dep)
-
-        produtividade_cache[str(id_dep)] = {
+        produtividade_cache[id_dep] = {
             "proposicoes": proposicoes,
-            "presenca": presenca
+            "presenca": presenca,
+            "score": proposicoes + presenca
         }
 
+        print(
+            f"✅ {nome} | proposicoes={proposicoes} "
+            f"| presenca={presenca} | score={proposicoes + presenca}"
+        )
+
     with open(CACHE_PROD, "w", encoding="utf-8") as f:
-        json.dump(produtividade_cache, f, indent=2)
+        json.dump(produtividade_cache, f, ensure_ascii=False, indent=2)
 
     print("✅ Produtividade atualizada!")
+
+
+if __name__ == "__main__":
+    atualizar_produtividade(2025)
