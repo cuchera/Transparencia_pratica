@@ -36,3 +36,12 @@ Thumbs.db
 .vscode/
 .idea/
 
+node_modules/
+Frontend/node_modules/
+
+# outros úteis
+__pycache__/
+*.pyc
+.env
+dist/
+build/

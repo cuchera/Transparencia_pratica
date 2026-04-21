@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Query
+from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional
 from models.deputado import Deputado
 from services.camara_service import listar_deputados_cache
@@ -10,7 +11,19 @@ import json, os
 
 app = FastAPI(title="API Transparência Parlamentar")
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 CACHE_GASTOS = "cache/gastos.json"
+CACHE_PROD = "cache/produtividade.json"
 
 def start_scheduler():
     scheduler = BackgroundScheduler()
@@ -43,6 +56,12 @@ def get_deputados(
             gastos_cache = json.load(f)
     else:
         gastos_cache = {}
+    
+    if os.path.exists(CACHE_PROD) and os.path.getsize(CACHE_PROD) > 0:
+        with open(CACHE_PROD, "r", encoding="utf-8") as f:
+            produtividade_cache = json.load(f)
+    else:
+        produtividade_cache = {}
 
     deputados = []
 
@@ -52,6 +71,9 @@ def get_deputados(
 
         categorias = gastos_cache.get(str(d["id"]), {})
         gastos_rounded = {k: round(float(v), 2) for k, v in categorias.items()}
+        gasto_total = round(sum(gastos_rounded.values()), 2)
+
+        produtividade = produtividade_cache.get(str(d["id"]), {})
 
         deputados.append(
             Deputado(
@@ -60,7 +82,11 @@ def get_deputados(
                 sigla_partido=d["siglaPartido"],
                 sigla_uf=d["siglaUf"],
                 uri_foto=d["urlFoto"],
-                gastos_por_categoria=gastos_rounded
+                gastos_por_categoria=gastos_rounded,
+                gasto_total=gasto_total,
+                proposicoes=produtividade.get("proposicoes", 0),
+                presenca=produtividade.get("presenca", 0),
+                score_produtividade=produtividade.get("score", 0)
             )
         )
 
