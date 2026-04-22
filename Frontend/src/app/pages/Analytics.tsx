@@ -131,8 +131,21 @@ export function Analytics() {
     }, {} as Record<string, { state: string; productivity: number }>)
   ).sort((a, b) => b.productivity - a.productivity);
 
-  const topPerformers = [...filteredPoliticians]
+  const topPerformance = [...filteredPoliticians]
     .sort((a, b) => b.score_produtividade - a.score_produtividade)
+    .slice(0, 5);
+
+  const topSpenders = [...filteredPoliticians]
+    .sort((a, b) => b.gasto_total - a.gasto_total)
+    .slice(0, 5);
+
+  const topCostBenefit = [...filteredPoliticians]
+    .filter((p) => p.score_produtividade > 0)
+    .sort(
+      (a, b) =>
+        a.gasto_total / a.score_produtividade -
+        b.gasto_total / b.score_produtividade
+    )
     .slice(0, 5);
 
   const COLORS = ["#3b82f6", "#ef4444", "#10b981", "#f59e0b", "#8b5cf6", "#06b6d4"];
@@ -356,43 +369,137 @@ export function Analytics() {
           </ResponsiveContainer>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Top 5 Desempenhos
-          </h2>
-          <div className="space-y-3">
-            {topPerformers.map((politician, index) => (
-              <div
-                key={politician.id}
-                className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg"
-              >
-                <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold">
-                  {index + 1}
-                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              Top 5 Performance
+            </h2>
 
-                <img
-                  src={politician.uri_foto || "https://via.placeholder.com/48"}
-                  alt={politician.nome}
-                  className="w-12 h-12 rounded-full object-cover"
-                />
+            <div className="space-y-3">
+              {topPerformance.map((politician, index) => (
+                <div
+                  key={politician.id}
+                  className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg"
+                >
+                  <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold">
+                    {index + 1}
+                  </div>
 
-                <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900">
-                    {politician.nome}
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    {politician.sigla_partido} - {politician.sigla_uf}
-                  </p>
-                </div>
+                  <img
+                    src={politician.uri_foto || "https://via.placeholder.com/48"}
+                    alt={politician.nome}
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
 
-                <div className="text-right">
-                  <p className="text-2xl font-semibold text-gray-900">
-                    {politician.score_produtividade}
-                  </p>
-                  <p className="text-xs text-gray-500">Score</p>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900">{politician.nome}</h3>
+                    <p className="text-sm text-gray-600">
+                      {politician.sigla_partido} - {politician.sigla_uf}
+                    </p>
+                  </div>
+
+                  <div className="text-right">
+                    <p className="text-2xl font-semibold text-gray-900">
+                      {politician.score_produtividade}
+                    </p>
+                    <p className="text-xs text-gray-500">Score</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              Quem Gastou Mais
+            </h2>
+
+            <div className="space-y-3">
+              {topSpenders.map((politician, index) => (
+                <div
+                  key={politician.id}
+                  className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg"
+                >
+                  <div className="w-8 h-8 bg-red-600 text-white rounded-full flex items-center justify-center font-semibold">
+                    {index + 1}
+                  </div>
+
+                  <img
+                    src={politician.uri_foto || "https://via.placeholder.com/48"}
+                    alt={politician.nome}
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
+
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900">{politician.nome}</h3>
+                    <p className="text-sm text-gray-600">
+                      {politician.sigla_partido} - {politician.sigla_uf}
+                    </p>
+                  </div>
+
+                  <div className="text-right">
+                    <p className="text-lg font-semibold text-gray-900">
+                      R${" "}
+                      {politician.gasto_total.toLocaleString("pt-BR", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </p>
+                    <p className="text-xs text-gray-500">Gasto Total</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              Top Custo por Produtividade
+            </h2>
+
+            <div className="space-y-3">
+              {topCostBenefit.map((politician, index) => {
+                const costPerProductivity =
+                  politician.score_produtividade > 0
+                    ? politician.gasto_total / politician.score_produtividade
+                    : 0;
+
+                return (
+                  <div
+                    key={politician.id}
+                    className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg"
+                  >
+                    <div className="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center font-semibold">
+                      {index + 1}
+                    </div>
+
+                    <img
+                      src={politician.uri_foto || "https://via.placeholder.com/48"}
+                      alt={politician.nome}
+                      className="w-12 h-12 rounded-full object-cover"
+                    />
+
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900">{politician.nome}</h3>
+                      <p className="text-sm text-gray-600">
+                        {politician.sigla_partido} - {politician.sigla_uf}
+                      </p>
+                    </div>
+
+                    <div className="text-right">
+                      <p className="text-lg font-semibold text-gray-900">
+                        R${" "}
+                        {costPerProductivity.toLocaleString("pt-BR", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </p>
+                      <p className="text-xs text-gray-500">Custo/Produtividade</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
