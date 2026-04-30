@@ -33,8 +33,39 @@ def listar_deputados_cache():
         deputados.extend(data.get("dados", []))
         url = next((l["href"] for l in data.get("links", []) if l["rel"] == "next"), None)
 
+    print("🔄 Buscando detalhes dos deputados...")
+
+    for d in deputados:
+        id_deputado = d["id"]
+        detalhes = obter_detalhes_deputado(id_deputado)
+        d.update(detalhes)
+
+        print(d["nome"], d.get("escolaridade"), d.get("rede_social"))
+
     with open(CACHE_DEPUTADOS, "w", encoding="utf-8") as f:
         json.dump(deputados, f, ensure_ascii=False, indent=2)
 
     print(f"✅ Total de deputados salvos: {len(deputados)}")
     return deputados
+
+def obter_detalhes_deputado(id_deputado: int) -> dict:
+    url = f"{BASE_URL}/deputados/{id_deputado}"
+
+    try:
+        resp = requests.get(url, timeout=10)
+        resp.raise_for_status()
+        data = resp.json().get("dados", {})
+
+        return {
+            "escolaridade": data.get("escolaridade"),
+            "data_nascimento": data.get("dataNascimento"),
+            "municipio_nascimento": data.get("municipioNascimento"),
+            "uf_nascimento": data.get("ufNascimento"),
+            "rede_social": data.get("redeSocial", []),
+            "url_website": data.get("urlWebsite"),
+        }
+    
+
+    except Exception as e:
+        print(f"⚠️ Erro ao buscar detalhes {id_deputado}: {e}")
+        return {}

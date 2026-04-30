@@ -86,7 +86,13 @@ def get_deputados(
                 gasto_total=gasto_total,
                 proposicoes=produtividade.get("proposicoes", 0),
                 presenca=produtividade.get("presenca", 0),
-                score_produtividade=produtividade.get("score", 0)
+                score_produtividade=produtividade.get("score", 0),
+                escolaridade=d.get("escolaridade"),
+                data_nascimento=d.get("data_nascimento"),
+                municipio_nascimento=d.get("municipio_nascimento"),
+                uf_nascimento=d.get("uf_nascimento"),
+                rede_social=d.get("rede_social", []),
+                url_website=d.get("url_website"),
             )
         )
 

@@ -23,6 +23,12 @@ interface Politician {
   presenca: number;
   score_produtividade: number;
   gastos_por_categoria?: Record<string, number>;
+  escolaridade?: string;
+  data_nascimento?: string;
+  municipio_nascimento?: string;
+  uf_nascimento?: string;
+  rede_social?: string[];
+  url_website?: string;
 }
 
 export function PoliticianProfile() {
@@ -150,6 +156,20 @@ export function PoliticianProfile() {
                   <Briefcase className="w-5 h-5" />
                   <span>Deputado Federal</span>
                 </div>
+                
+                <div className="flex items-center gap-2">
+                  <span>Escolaridade:</span>
+                  <span>{politician.escolaridade || "Não informado"}</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span>Nascimento:</span>
+                  <span>
+                    {politician.municipio_nascimento || "Não informado"}
+                    {politician.uf_nascimento ? ` - ${politician.uf_nascimento}` : ""}
+                  </span>
+                </div>
+
               </div>
             </div>
 
@@ -216,6 +236,7 @@ export function PoliticianProfile() {
             </p>
           </div>
         </div>
+        
 
         <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
@@ -257,6 +278,37 @@ export function PoliticianProfile() {
             <p className="text-gray-500">Sem dados de gastos por categoria.</p>
           )}
         </div>
+        {politician.rede_social && politician.rede_social.length > 0 && (
+          <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              Redes Sociais
+            </h2>
+
+            <div className="flex flex-wrap gap-3">
+              {politician.rede_social.map((rede, index) => (
+                <a
+                  key={index}
+                  href={rede}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-700 underline"
+                >
+                  Rede {index + 1}
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+        {politician.url_website && (
+          <a
+            href={politician.url_website}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 hover:text-blue-700 underline"
+          >
+            Site oficial
+          </a>
+        )}
       </div>
     </div>
   );
