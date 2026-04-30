@@ -62,11 +62,7 @@ def contar_proposicoes_por_deputado(ano: int) -> dict:
     return dict(contagem)
 
 
-def contar_presencas_por_deputado(ano: int) -> dict:
-    """
-    Lê o arquivo anual de presença em eventos e conta
-    quantos registros de presença cada deputado possui.
-    """
+def contar_dias_presenca_por_deputado(ano: int) -> dict:
     url = (
         f"https://dadosabertos.camara.leg.br/arquivos/"
         f"eventosPresencaDeputados/json/eventosPresencaDeputados-{ano}.json"
@@ -76,19 +72,22 @@ def contar_presencas_por_deputado(ano: int) -> dict:
     data = baixar_json(url)
     registros = normalizar_lista_json(data)
 
-    contagem = defaultdict(int)
+    presencas = defaultdict(set)
 
     for item in registros:
         id_deputado = item.get("idDeputado")
-        if not id_deputado:
+        data_hora = item.get("dataHoraInicio")
+
+        if not id_deputado or not data_hora:
             continue
 
-        contagem[str(id_deputado)] += 1
+        dia = data_hora[:10]
+        presencas[str(id_deputado)].add(dia)
 
-    return dict(contagem)
+    return {id_dep: len(dias) for id_dep, dias in presencas.items()}
 
 
-def atualizar_produtividade(ano: int = 2025):
+def atualizar_produtividade(ano: int = 2026):
     from services.camara_service import listar_deputados_cache
 
     deputados = listar_deputados_cache()
@@ -97,7 +96,7 @@ def atualizar_produtividade(ano: int = 2025):
     print("🔄 Atualizando produtividade...")
 
     proposicoes_por_dep = contar_proposicoes_por_deputado(ano)
-    presencas_por_dep = contar_presencas_por_deputado(ano)
+    presencas_por_dep = contar_dias_presenca_por_deputado(ano)
 
     for d in deputados:
         id_dep = str(d["id"])
@@ -124,4 +123,4 @@ def atualizar_produtividade(ano: int = 2025):
 
 
 if __name__ == "__main__":
-    atualizar_produtividade(2025)
+    atualizar_produtividade(2026)
