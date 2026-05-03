@@ -59,23 +59,23 @@ export function PoliticianCard({ politician }: PoliticianCardProps) {
 
       <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t border-gray-100">
         <div>
-          <p className="text-xs text-gray-500">Productivity</p>
+          <p className="text-xs text-gray-500">Proposições</p>
           <p className="font-semibold text-gray-900">
             {politician.proposicoes}
           </p>
         </div>
 
         <div>
-          <p className="text-xs text-gray-500">Attendance</p>
+          <p className="text-xs text-gray-500">Presença</p>
           <p className="font-semibold text-gray-900">
             {politician.presenca}
           </p>
         </div>
 
         <div>
-          <p className="text-xs text-gray-500">Cost/Unit</p>
+          <p className="text-xs text-gray-500">Custo por unidade</p>
           <p className="font-semibold text-gray-900">
-            R$ {costPerProductivity.toFixed(2)}
+            R$ {costPerProductivity.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </p>
         </div>
       </div>

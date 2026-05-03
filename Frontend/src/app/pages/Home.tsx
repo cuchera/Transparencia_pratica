@@ -1,43 +1,49 @@
 import { useState, useMemo, useEffect } from "react";
 import { FilterBar } from "../components/FilterBar";
 import { PoliticianCard } from "../components/PoliticianCard";
-import { states, parties, positions, years } from "../data/mockData";
+import { states, parties, positions } from "../data/mockData";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 export function Home() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedState, setSelectedState] = useState("All States");
-  const [selectedParty, setSelectedParty] = useState("All Parties");
-  const [selectedPosition, setSelectedPosition] = useState("All Positions");
-  const [selectedYear, setSelectedYear] = useState("2025");
+  const [selectedState, setSelectedState] = useState("");
+  const [selectedParty, setSelectedParty] = useState("");
+  const [selectedPosition, setSelectedPosition] = useState("");
 
   const [politicians, setPoliticians] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
+    console.log('API_URL:', API_URL);
+    const url = `${API_URL}/deputados`;
+    console.log('Fetch URL:', url);
     setLoading(true);
     setError("");
 
-    fetch(`${API_URL}/deputados?ano=${selectedYear}`)
+    fetch(url)
       .then((res) => {
+        console.log('Fetch response status:', res.status);
+        console.log('Response ok:', res.ok);
         if (!res.ok) {
-          throw new Error("Erro ao buscar dados do backend");
+          throw new Error(`Erro ao buscar dados do backend: ${res.status}`);
         }
         return res.json();
       })
       .then((data) => {
+        console.log('Data loaded:', data.length);
         setPoliticians(data);
       })
       .catch((err) => {
-        console.error(err);
+        console.error('Fetch error:', err);
         setError("Não foi possível carregar os dados.");
       })
       .finally(() => {
         setLoading(false);
       });
-  }, [selectedYear]);
+  }, []);
+
 
   const filteredPoliticians = useMemo(() => {
     return politicians.filter((politician) => {
@@ -46,15 +52,15 @@ export function Home() {
         .includes(searchQuery.toLowerCase());
 
       const matchesState =
-        selectedState === "All States" ||
+        selectedState === "" ||
         politician.sigla_uf === selectedState;
 
       const matchesParty =
-        selectedParty === "All Parties" ||
+        selectedParty === "" ||
         politician.sigla_partido === selectedParty;
 
       const matchesPosition =
-        selectedPosition === "All Positions" ||
+        selectedPosition === "" ||
         selectedPosition === "Deputado Federal";
 
       return matchesSearch &&
@@ -69,11 +75,10 @@ export function Home() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-semibold text-gray-900 mb-2">
-            Political Representatives
+            Representantes Políticos
           </h1>
           <p className="text-gray-600">
-            Search and analyze public officials based on transparency and
-            performance data
+            Pesquisar e analisar funcionários públicos com base em dados de transparência e desempenho.
           </p>
         </div>
 
@@ -87,12 +92,9 @@ export function Home() {
             setSelectedParty={setSelectedParty}
             selectedPosition={selectedPosition}
             setSelectedPosition={setSelectedPosition}
-            selectedYear={selectedYear}
-            setSelectedYear={setSelectedYear}
             states={states}
             parties={parties}
             positions={positions}
-            years={years}
           />
         </div>
 
@@ -105,7 +107,7 @@ export function Home() {
 
         {loading && (
           <div className="py-8">
-            <p className="text-gray-500">Loading data...</p>
+            <p className="text-gray-500">Carregando dados...</p>
           </div>
         )}
 
@@ -126,7 +128,7 @@ export function Home() {
         {!loading && !error && filteredPoliticians.length === 0 && (
           <div className="text-center py-12">
             <p className="text-gray-500">
-              No politicians found matching your criteria
+              Nenhum político encontrado que corresponda aos seus critérios.
             </p>
           </div>
         )}

@@ -17,8 +17,8 @@ export function Header() {
               <BarChart3 className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="font-semibold text-gray-900">Political Transparency</h1>
-              <p className="text-xs text-gray-500">Data-Driven Governance</p>
+              <h1 className="font-semibold text-gray-900">Transparência Política</h1>
+              <p className="text-xs text-gray-500">Governança orientada por dados</p>
             </div>
           </Link>
 
@@ -43,7 +43,7 @@ export function Header() {
               }`}
             >
               <Users className="w-4 h-4" />
-              <span>Compare</span>
+              <span>Comparação</span>
             </Link>
             <Link
               to="/analytics"
@@ -54,7 +54,7 @@ export function Header() {
               }`}
             >
               <TrendingUp className="w-4 h-4" />
-              <span>Analytics</span>
+              <span>Análises</span>
             </Link>
           </nav>
         </div>

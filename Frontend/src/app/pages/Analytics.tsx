@@ -32,7 +32,6 @@ interface Politician {
 }
 
 export function Analytics() {
-  const [selectedYear, setSelectedYear] = useState("2025");
   const [selectedParty, setSelectedParty] = useState("Todos");
   const [politicians, setPoliticians] = useState<Politician[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,7 +41,7 @@ export function Analytics() {
     setLoading(true);
     setError("");
 
-    fetch(`${API_URL}/deputados?ano=${selectedYear}`)
+    fetch(`${API_URL}/deputados`)
       .then((res) => {
         if (!res.ok) throw new Error("Erro ao buscar dados do backend");
         return res.json();
@@ -57,14 +56,12 @@ export function Analytics() {
       .finally(() => {
         setLoading(false);
       });
-  }, [selectedYear]);
+  }, []);
 
   const parties = useMemo(() => {
     const uniqueParties = [...new Set(politicians.map((p) => p.sigla_partido))];
     return ["Todos", ...uniqueParties.sort()];
   }, [politicians]);
-
-  const years = ["2023", "2024", "2025", "2026"];
 
   const filteredPoliticians = useMemo(() => {
     return politicians.filter((politician) => {
@@ -179,24 +176,7 @@ export function Analytics() {
         </div>
 
         <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Ano
-              </label>
-              <select
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-              >
-                {years.map((year) => (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </select>
-            </div>
-
+          <div className="grid grid-cols-1 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Partido

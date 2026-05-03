@@ -20,12 +20,6 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
 
-    /* Path mapping */
-    "baseUrl": "./src",
-    "paths": {
-      "@/*": ["*"]
-    },
-
     /* Type declarations */
     "types": ["vite/client"]
   },
