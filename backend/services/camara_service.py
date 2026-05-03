@@ -1,6 +1,7 @@
 import requests
 import json
 import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 BASE_URL = "https://dadosabertos.camara.leg.br/api/v2"
 CACHE_DEPUTADOS = "cache/deputados.json"
@@ -33,14 +34,17 @@ def listar_deputados_cache():
         deputados.extend(data.get("dados", []))
         url = next((l["href"] for l in data.get("links", []) if l["rel"] == "next"), None)
 
-    print("🔄 Buscando detalhes dos deputados...")
+        print("⚡ Buscando detalhes dos deputados em paralelo...")
 
-    for d in deputados:
-        id_deputado = d["id"]
-        detalhes = obter_detalhes_deputado(id_deputado)
-        d.update(detalhes)
+        deputados_completos = []
 
-        print(d["nome"], d.get("escolaridade"), d.get("rede_social"))
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            futures = [executor.submit(enriquecer_deputado, d) for d in deputados]
+
+            for future in as_completed(futures):
+                deputados_completos.append(future.result())
+
+        deputados = deputados_completos
 
     with open(CACHE_DEPUTADOS, "w", encoding="utf-8") as f:
         json.dump(deputados, f, ensure_ascii=False, indent=2)
@@ -69,3 +73,12 @@ def obter_detalhes_deputado(id_deputado: int) -> dict:
     except Exception as e:
         print(f"⚠️ Erro ao buscar detalhes {id_deputado}: {e}")
         return {}
+
+def enriquecer_deputado(d):
+    id_deputado = d["id"]
+    detalhes = obter_detalhes_deputado(id_deputado)
+    d.update(detalhes)
+
+    print(d["nome"], d.get("escolaridade"), d.get("rede_social"))
+
+    return d

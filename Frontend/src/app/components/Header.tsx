@@ -17,7 +17,7 @@ export function Header() {
               <BarChart3 className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="font-semibold text-gray-900">Transparência Política</h1>
+              <h1 className="font-semibold text-gray-900">Transparência Prática</h1>
               <p className="text-xs text-gray-500">Governança orientada por dados</p>
             </div>
           </Link>
